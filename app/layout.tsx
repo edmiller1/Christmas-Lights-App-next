@@ -1,8 +1,9 @@
-import { GeistSans } from "geist/font/sans";
-import "./globals.css";
+import "@/styles/globals.css";
 import { Inter as FontSans } from "next/font/google";
 
 import { cn } from "@/lib/utils";
+import { ThemeProvider } from "@/components/ui/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -15,8 +16,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  title: "Christmas lights App",
+  description: "Discover and explore amazing Christmas decorations",
 };
 
 export default function RootLayout({
@@ -32,9 +33,15 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <main className="min-h-screen flex flex-col items-center">
-          {children}
-        </main>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <main>{children}</main>
+          <Toaster position="bottom-right" />
+        </ThemeProvider>
       </body>
     </html>
   );
