@@ -3,7 +3,13 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { LoginCard } from "./components/LoginCard";
 
-export default function Login() {
+export default async function Login() {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const signIn = async (email: string, password: string) => {
     "use server";
 
@@ -40,6 +46,10 @@ export default function Login() {
 
     return redirect(data.url!);
   };
+
+  if (user) {
+    return redirect("/");
+  }
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center">

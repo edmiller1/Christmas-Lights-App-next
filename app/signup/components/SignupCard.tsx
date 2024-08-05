@@ -76,8 +76,6 @@ export const SignupCard = ({ signUp, signInWithGoogle }: Props) => {
       values.password
     );
 
-    console.log(result);
-
     if (result.error && result.error.length > 0) {
       toast.error(result.error);
       setIsSuccess(false);

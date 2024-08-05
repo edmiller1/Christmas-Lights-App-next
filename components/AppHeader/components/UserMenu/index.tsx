@@ -13,16 +13,29 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "../ThemeToggle";
+import { User } from "@supabase/supabase-js";
+import { getAvatarFallback } from "@/lib/helpers";
 
-export const UserMenu = () => {
+interface Props {
+  handleSignOut: () => Promise<void>;
+  user: User;
+}
+
+export const UserMenu = ({ handleSignOut, user }: Props) => {
   const router = useRouter();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative w-8 h-8 mt-1 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-            <AvatarFallback>CN</AvatarFallback>
+            <AvatarImage
+              src={user.user_metadata.avatar_url}
+              alt="profile image"
+            />
+            <AvatarFallback>
+              {getAvatarFallback(user.user_metadata.full_name)}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -30,13 +43,20 @@ export const UserMenu = () => {
         <DropdownMenuLabel className="font-normal">
           <div className="flex items-center space-x-3">
             <Avatar className="h-9 w-9">
-              <AvatarImage src="https://github.com/shadcn.png"></AvatarImage>
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarImage
+                src={user.user_metadata.avatar_url}
+                alt="profile image"
+              ></AvatarImage>
+              <AvatarFallback>
+                {getAvatarFallback(user.user_metadata.full_name)}
+              </AvatarFallback>
             </Avatar>
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">Sunny Dog</p>
+              <p className="text-sm font-medium leading-none">
+                {user.user_metadata.full_name}
+              </p>
               <p className="text-xs leading-none text-muted-foreground">
-                sunnydog@gmail.com
+                {user.email}
               </p>
             </div>
           </div>
@@ -76,7 +96,9 @@ export const UserMenu = () => {
           <ThemeToggle />
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer">Sign Out</DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer" onClick={handleSignOut}>
+          Sign Out
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -3,7 +3,13 @@ import { ResetPasswordForm } from "./components/ResetPasswordForm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-export default function ResetPassword() {
+export default async function ResetPassword() {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const resetPassword = async (email: string) => {
     "use server";
 
@@ -20,6 +26,10 @@ export default function ResetPassword() {
 
     return redirect("/login");
   };
+
+  if (user) {
+    return redirect("/login");
+  }
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center">

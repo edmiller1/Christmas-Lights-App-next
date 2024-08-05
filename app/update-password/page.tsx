@@ -3,7 +3,13 @@ import { headers } from "next/headers";
 import { UpdatePasswordForm } from "./components/UpdatePasswordForm";
 import { redirect } from "next/navigation";
 
-export default function UpdatePassword() {
+export default async function UpdatePassword() {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const updatePassword = async (password: string) => {
     "use server";
 
@@ -25,6 +31,11 @@ export default function UpdatePassword() {
 
     return redirect("/login");
   };
+
+  if (user) {
+    return redirect("/login");
+  }
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center">
       <UpdatePasswordForm updatePassword={updatePassword} />

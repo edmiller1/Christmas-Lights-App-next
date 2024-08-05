@@ -3,11 +3,13 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { SignupCard } from "./components/SignupCard";
 
-export default function Signup({
-  searchParams,
-}: {
-  searchParams: { message: string };
-}) {
+export default async function Signup() {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const signUp = async (
     firstname: string,
     lastname: string,
@@ -62,6 +64,10 @@ export default function Signup({
 
     return redirect(data.url!);
   };
+
+  if (user) {
+    return redirect("/");
+  }
 
   return (
     <div className="min-h-screen flex justify-center items-center">
