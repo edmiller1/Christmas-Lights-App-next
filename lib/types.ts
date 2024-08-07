@@ -8,3 +8,12 @@ export interface Profile {
   notifications_on_app_rating: boolean;
   notifications_on_app_verification: boolean;
 }
+
+export interface Notification {
+  id: string;
+  created_at: string;
+  title: string;
+  body: string;
+  unread: boolean;
+  profile_id: string;
+}

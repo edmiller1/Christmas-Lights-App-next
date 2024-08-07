@@ -1,6 +1,6 @@
 import { getUserProfile } from "@/api/queries/getUserProfile";
 import { AppHeader } from "@/components/AppHeader";
-import { Database } from "@/database.types";
+import { Home } from "@/components/Home";
 import { Profile } from "@/lib/types";
 import { createClient } from "@/utils/supabase/server";
 
@@ -20,6 +20,7 @@ export default async function Index() {
   return (
     <div className="bg-background">
       <AppHeader user={user} profile={profile} />
+      <Home />
     </div>
   );
 }

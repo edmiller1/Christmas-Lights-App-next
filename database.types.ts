@@ -122,7 +122,7 @@ export type Database = {
       }
       notification: {
         Row: {
-          body: string | null
+          body: string
           created_at: string
           id: string
           profile_id: string
@@ -130,7 +130,7 @@ export type Database = {
           unread: boolean
         }
         Insert: {
-          body?: string | null
+          body: string
           created_at?: string
           id?: string
           profile_id: string
@@ -138,7 +138,7 @@ export type Database = {
           unread?: boolean
         }
         Update: {
-          body?: string | null
+          body?: string
           created_at?: string
           id?: string
           profile_id?: string
