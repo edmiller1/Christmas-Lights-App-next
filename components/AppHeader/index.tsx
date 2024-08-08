@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import useSupabaseBrowser from "@/utils/supabase/client";
+import { getUserProfile } from "@/api/queries/getUserProfile";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { useMutation } from "@tanstack/react-query";
 import logo from "../../app/assets/ChristmasLights-House-Logo.png";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,34 +16,81 @@ import { List, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { LoggedOutUserMenu } from "@/components/AppHeader/components/LoggedOutUserMenu";
 import { User } from "@supabase/supabase-js";
 import { UserMenu } from "./components/UserMenu";
-import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Notification, Profile } from "@/lib/types";
 import { CreateButton } from "./components/CreateButton";
 import { NotificationsButton } from "./components/NotificationsButton";
 import { Dialog, DialogPanel } from "@headlessui/react";
 import { getUserNotifications } from "@/api/queries/getUserNotifications";
-import { getUserUnreadNotificationsCount } from "@/api/queries/getUnreadNotificationsCount";
 
 interface Props {
-  profile: Profile | null;
   user: User | null;
 }
 
-export const AppHeader = ({ profile, user }: Props) => {
+export const AppHeader = ({ user }: Props) => {
   const router = useRouter();
+  const supabase = useSupabaseBrowser();
+
+  //STATE
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [currentPlace, setCurrentPlace] = useState<string>("");
   const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
-  const [userNotifications, setUserNotifications] = useState<
-    Notification[] | null
-  >(null);
-  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<
-    number | null
-  >(null);
+
+  //QUERIES
+  const { data: profile } = useQuery(getUserProfile(supabase, user?.id ?? ""));
+  const { data: notifications, refetch: refetchNotifications } = useQuery(
+    getUserNotifications(supabase, user?.id ?? "")
+  );
+
+  //MUTATIONS
+  const markAllNotificationsAsRead = useMutation({
+    mutationFn: async (userId: string) => {
+      return await supabase
+        .from("notification")
+        .update({ unread: false })
+        .eq("profile_id", userId);
+    },
+    onSuccess: () => {
+      toast.success("All notifications have been marked as read");
+      refetchNotifications();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const markNotification = useMutation({
+    mutationFn: async ({
+      notificationId,
+      unread,
+    }: {
+      notificationId: string;
+      unread: boolean;
+    }) => {
+      return await supabase
+        .from("notification")
+        .update({ unread })
+        .eq("id", notificationId)
+        .single();
+    },
+    onSuccess: () => {
+      toast.success("Notification updated successfully!");
+      refetchNotifications();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  //FUNCTIONS
+  const markNotificationsAsRead = () => {
+    markAllNotificationsAsRead.mutate(user?.id ?? "");
+  };
+
+  const markSingleNotification = (notificationId: string, unread: boolean) => {
+    markNotification.mutate({ notificationId, unread });
+  };
 
   const handleSignOut = async () => {
-    const supabase = createClient();
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -81,24 +132,11 @@ export const AppHeader = ({ profile, user }: Props) => {
   };
 
   useEffect(() => {
-    if (user) {
-      const getNotifications = async () => {
-        const notifications = await getUserNotifications(user?.id);
-        setUserNotifications(notifications);
-      };
-      const getUnreadNotifications = async () => {
-        const unreadUserNotificationsCount =
-          await getUserUnreadNotificationsCount(user?.id);
-        setUnreadNotificationsCount(unreadUserNotificationsCount);
-      };
-      getNotifications();
-      getUnreadNotifications();
-    }
     getCoords();
   }, []);
 
   return (
-    <header className="absolute inset-x-0 top-0 z-50 h-16 border-b">
+    <header className="bg-background absolute inset-x-0 top-0 z-50 h-16 border-b">
       <nav
         className="flex items-center justify-between p-3 lg:px-8"
         aria-label="Global"
@@ -175,8 +213,13 @@ export const AppHeader = ({ profile, user }: Props) => {
             <>
               <CreateButton setIsCreateOpen={setIsCreateOpen} />
               <NotificationsButton
-                userNotifications={userNotifications}
-                unreadUserNotificationsCount={unreadNotificationsCount}
+                markNotificationsAsRead={markNotificationsAsRead}
+                markNotificationsAsReadLoading={
+                  markAllNotificationsAsRead.isPending
+                }
+                markSingleNotification={markSingleNotification}
+                markSingleNotificationLoading={markNotification.isPending}
+                notifications={notifications}
               />
               <UserMenu handleSignOut={handleSignOut} user={user} />
             </>

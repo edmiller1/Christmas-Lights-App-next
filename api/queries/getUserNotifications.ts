@@ -1,14 +1,12 @@
-import { createClient } from "@/utils/supabase/client";
+import { TypedSupabaseClient } from "@/lib/types";
 
-export const getUserNotifications = async (userId: string) => {
-  "use client";
-  const supabase = createClient();
-
-  const { data } = await supabase
+export const getUserNotifications = (
+  client: TypedSupabaseClient,
+  userId: string
+) => {
+  return client
     .from("notification")
     .select("*")
     .eq("profile_id", userId)
     .order("created_at", { ascending: false });
-
-  return data;
 };

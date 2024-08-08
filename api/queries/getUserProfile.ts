@@ -1,13 +1,10 @@
-import { createClient } from "@/utils/supabase/server";
+import { TypedSupabaseClient } from "@/lib/types";
 
-export const getUserProfile = async (userId: string) => {
-  const supabase = createClient();
-
-  const { data } = await supabase
+export const getUserProfile = (client: TypedSupabaseClient, userId: string) => {
+  return client
     .from("profile")
     .select("*")
     .eq("id", userId)
+    .throwOnError()
     .single();
-
-  return data;
 };

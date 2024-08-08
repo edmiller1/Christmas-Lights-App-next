@@ -1,14 +1,12 @@
-import { createClient } from "@/utils/supabase/client";
+import { TypedSupabaseClient } from "@/lib/types";
 
-export const getUserUnreadNotificationsCount = async (userId: string) => {
-  "use client";
-  const supabase = createClient();
-
-  const { count } = await supabase
+export const getUnreadNotificationsCount = (
+  client: TypedSupabaseClient,
+  userId: string
+) => {
+  return client
     .from("notification")
     .select("*", { count: "exact", head: true })
     .eq("profile_id", userId)
     .eq("unread", true);
-
-  return count;
 };

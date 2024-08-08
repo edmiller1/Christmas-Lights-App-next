@@ -1,25 +1,33 @@
 import { getUserProfile } from "@/api/queries/getUserProfile";
 import { AppHeader } from "@/components/AppHeader";
 import { Home } from "@/components/Home";
-import { Profile } from "@/lib/types";
-import { createClient } from "@/utils/supabase/server";
+import useSupabaseServer from "@/utils/supabase/server";
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import { prefetchQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { cookies } from "next/headers";
 
 export default async function Index() {
-  let profile: Profile | null = null;
-  const supabase = createClient();
+  const queryClient = new QueryClient();
+  const cookieStore = cookies();
+  const supabase = useSupabaseServer(cookieStore);
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (user) {
-    profile = await getUserProfile(user.id);
-    console.log(profile);
+    await prefetchQuery(queryClient, getUserProfile(supabase, user.id));
   }
 
   return (
     <div className="bg-background">
-      <AppHeader user={user} profile={profile} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <AppHeader user={user} />
+      </HydrationBoundary>
       <Home />
     </div>
   );
